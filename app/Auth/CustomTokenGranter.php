@@ -3,7 +3,7 @@ namespace App\Auth;
 
 use League\OAuth2\Server\Grant\AbstractGrant;
 use Psr\Http\Message\ServerRequestInterface;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class CustomTokenGranter extends AbstractGrant
 {
@@ -36,21 +36,20 @@ class CustomTokenGranter extends AbstractGrant
             'password' => $password
         ]);
 
+        Log::info('User đã đăng nhập', $username);
+
         if (!$user) {
             throw new \Exception('Invalid credentials');
         }
 
         // Issue the access token
-        $accessToken = $this->issueAccessToken($accessTokenTTL, $user->getAuthIdentifier(), []);
+        $accessToken = $this->issueAccessToken($accessTokenTTL, $user->getAuthIdentifier(), null);
 
         // Enhance the token (Return JWT string)
         $enhancer = new CustomTokenEnhancer();
         $jwt = $enhancer->enhance($accessToken);
 
         // Trả về phản hồi JSON chứa chuỗi JWT
-        return new JsonResponse([
-            'access_token' => $jwt,
-            'token_type' => 'bearer'
-        ]);
+        return $responseType->setAccessToken($jwt);
     }
 }

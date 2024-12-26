@@ -2,16 +2,13 @@
 
 namespace App\Auth;
 
-use Laravel\Passport\Passport;
 use Illuminate\Support\ServiceProvider;
 use League\OAuth2\Server\AuthorizationServer;
-use Laravel\Passport\Bridge\PersonalAccessGrant;
 use League\OAuth2\Server\Grant\PasswordGrant;
 use Laravel\Passport\Bridge\UserRepository;
-use Psr\Http\Message\ServerRequestInterface;
-use App\Auth\CustomTokenGranter;
-use App\Auth\CustomTokenEnhancer;
+use Laravel\Passport\Passport;
 use App\Auth\CustomTokenConverter;
+use App\Auth\CustomTokenGranter;
 
 class CustomAuthServerProvider extends ServiceProvider
 {
@@ -20,59 +17,47 @@ class CustomAuthServerProvider extends ServiceProvider
         $this->app->singleton(AuthorizationServer::class, function ($app) {
             $server = $app->make(AuthorizationServer::class);
             
-            // Thêm CustomTokenEnhancer (TokenEnhancerChain)
+            // Đăng ký Password Grant
             $server->enableGrantType(
-                $this->makePasswordGrant(), 
+                $this->makePasswordGrant($app), 
                 Passport::tokensExpireIn()
             );
 
-            // Đăng ký Custom Token Granters (Tương đương CompositeTokenGranter)
-            $server->setGrantTypeResolver(function (ServerRequestInterface $request) use ($app) {
-                $granters = [
-                    new CustomTokenGranter($app->make('auth')->guard(), 'custom'),
-                    new CustomTokenGranter($app->make('auth')->guard(), 'anonymous'),
-                    new CustomTokenGranter($app->make('auth')->guard(), 'tablet'),
-                    new CustomTokenGranter($app->make('auth')->guard(), 'qrlive'),
-                ];
+            // Thêm CustomTokenConverter (Access Token)
+            $server->setAccessTokenRepository($app->make(CustomTokenConverter::class));
 
-                foreach ($granters as $granter) {
-                    if ($granter->canGrant($request)) {
-                        return $granter;
-                    }
-                }
-            });
-
-            // Thêm CustomTokenConverter (Tương đương JwtAccessTokenConverter)
-            $server->setAccessTokenRepository(new CustomTokenConverter());
+            // Đăng ký Custom Token Granters
+            $this->registerCustomGranters($server, $app);
 
             return $server;
         });
     }
 
-    // Password Grant (Tương tự AuthenticationManager)
-    protected function makePasswordGrant()
+    protected function makePasswordGrant($app)
     {
         $grant = new PasswordGrant(
-            new UserRepository(),
-            app()->make('auth')->createUserProvider()
+            new UserRepository($app->make('auth')->createUserProvider('users')),
+            $app->make('auth')->createUserProvider('users')
         );
 
         $grant->setRefreshTokenTTL(Passport::refreshTokensExpireIn());
         return $grant;
     }
 
-    public function boot()
+    // Đăng ký CustomTokenGranter
+    protected function registerCustomGranters(AuthorizationServer $server, $app)
     {
-        Passport::routes();
+        $granters = [
+            new CustomTokenGranter($app->make('auth')->guard(), 'custom'),
+            new CustomTokenGranter($app->make('auth')->guard(), 'anonymous'),
+        ];
 
-        // Bảo mật token
-        Passport::tokensCan([
-            'trusted' => 'Access trusted endpoints',
-            'basic' => 'Basic API access'
-        ]);
-
-        Passport::setDefaultScope([
-            'basic'
-        ]);
+        foreach ($granters as $granter) {
+            $server->enableGrantType(
+                $granter,
+                Passport::tokensExpireIn()
+            );
+        }
     }
 }
+

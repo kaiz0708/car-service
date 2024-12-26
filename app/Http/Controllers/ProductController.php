@@ -12,6 +12,8 @@ class ProductController extends Controller
         // Lấy tất cả sản phẩm từ database
         $products = Product::all();
 
+        echo $products;
+
         // Trả về JSON response
         return response()->json([
             'success' => true,

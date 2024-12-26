@@ -36,8 +36,8 @@ return [
     */
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
+        'api' => [
+            'driver' => 'passport',
             'provider' => 'users',
         ],
     ],
@@ -60,11 +60,11 @@ return [
     */
 
     'providers' => [
+        
         'users' => [
-            'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+        'driver' => 'eloquent',
+        'model' => App\Models\Account::class, 
         ],
-
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',
