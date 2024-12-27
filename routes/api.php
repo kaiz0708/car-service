@@ -3,7 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\AccessTokenController;
+use App\Http\Controllers\AuthController;
 
 
 
@@ -19,4 +19,7 @@ Route::post('/test', function (Request $request) {
     ]);
 });
 
-Route::post('/oauth/token', [AccessTokenController::class, 'issueToken'])->middleware('api');
+Route::post('/auth/token', [AuthController::class, 'getToken']);
+
+// Route::get('/oauth/authorize', [AuthorizationController::class, 'authorize']);
+// Route::post('/oauth/token', [AccessTokenController::class, 'issueToken']);

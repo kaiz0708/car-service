@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
-use App\Auth\CustomAuthServerProvider;
+use App\Providers\CustomAuthServerProvider;
 use Laravel\Passport\Passport;
 
 class AuthServiceProvider extends ServiceProvider
@@ -17,7 +17,9 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        Passport::ignoreRoutes();
+        Passport::tokensCan([
+            'access-api' => 'Access API endpoints',
+        ]);
 
         app()->bind(
             \Laravel\Passport\Bridge\AccessToken::class,
