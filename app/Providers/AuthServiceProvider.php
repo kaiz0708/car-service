@@ -3,9 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
-use App\Providers\CustomAuthServerProvider;
-use Laravel\Passport\Passport;
+use League\OAuth2\Server\AuthorizationServer;
+use Laravel\Passport\Bridge\RefreshTokenRepository;
+use Laravel\Passport\Bridge\UserRepository;
+use App\Grants\CustomPasswordGrant;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -15,21 +16,21 @@ class AuthServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->registerPolicies();
-
-        Passport::tokensCan([
-            'access-api' => 'Access API endpoints',
-        ]);
-
-        app()->bind(
-            \Laravel\Passport\Bridge\AccessToken::class,
-            \App\Auth\CustomTokenConverter::class,
+        $this->app->make(AuthorizationServer::class)->enableGrantType(
+            $this->makeCustomGrant(),
+            new \DateInterval('PT1H') // Access token TTL
         );
+    }
 
-        app()->bind(AccessTokenEntityInterface::class, function () {
-            return new \App\Auth\CustomTokenEnhancer();
-        });
 
-        app()->register(CustomAuthServerProvider::class);
+    protected function makeCustomGrant()
+    {
+        $grant = new CustomPasswordGrant(
+            $this->app->make(UserRepository::class),
+            $this->app->make(RefreshTokenRepository::class),
+            "password"
+        );
+        
+        return $grant;
     }
 }

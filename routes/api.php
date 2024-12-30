@@ -3,7 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\AuthController;
+use Laravel\Passport\Http\Controllers\AccessTokenController;
+use Psr\Http\Message\ServerRequestInterface;
 
 
 
@@ -19,7 +20,7 @@ Route::post('/test', function (Request $request) {
     ]);
 });
 
-Route::post('/auth/token', [AuthController::class, 'getToken']);
 
-// Route::get('/oauth/authorize', [AuthorizationController::class, 'authorize']);
-// Route::post('/oauth/token', [AccessTokenController::class, 'issueToken']);
+Route::post('/oauth/token', function (ServerRequestInterface $serverRequest) {
+    return app(AccessTokenController::class)->issueToken($serverRequest);
+})->middleware('throttle');
