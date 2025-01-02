@@ -14,7 +14,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        
+        $this->app->bind(
+            \League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface::class,
+            \App\Grants\CustomAccessTokenRepository::class
+        );
     }
 
     /**
@@ -22,6 +25,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        
+
     }
 }
