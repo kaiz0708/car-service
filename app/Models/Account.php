@@ -20,7 +20,7 @@ class Account extends Authenticatable
 {
     use HasApiTokens, HasFactory;
 
-    public function roles()
+    public function roles(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Role::class, 'role_id');
     }

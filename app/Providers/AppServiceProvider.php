@@ -2,10 +2,9 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use League\OAuth2\Server\AuthorizationServer;
-use App\Grants\PasswordGrant;
 use App\Grants\CustomGrant;
+use App\Grants\PasswordGrant;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -16,7 +15,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             \League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface::class,
-            \App\Grants\CustomAccessTokenRepository::class
+            \App\CustomAuthToken\CustomAccessTokenRepository::class
         );
     }
 

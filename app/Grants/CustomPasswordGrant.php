@@ -2,17 +2,22 @@
 
 namespace App\Grants;
 
+use App\CustomAuthToken\CustomAccessToken;
+use App\CustomAuthToken\CustomAccessTokenRepository;
+use App\CustomAuthToken\CustomRefreshToken;
+use App\CustomAuthToken\CustomRefreshTokenRepository;
+use App\CustomAuthToken\CustomResponseType;
+use App\Models\Account;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Passport\Bridge\RefreshTokenRepository;
-use Laravel\Passport\Bridge\UserRepository;
 use Laravel\Passport\Bridge\User as UserEntity;
+use Laravel\Passport\Bridge\UserRepository;
+use League\OAuth2\Server\Entities\ClientEntityInterface;
+use League\OAuth2\Server\Exception\OAuthServerException;
 use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
 use League\OAuth2\Server\Grant\AbstractGrant;
 use League\OAuth2\Server\ResponseTypes\ResponseTypeInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use App\Models\Account;
-use League\OAuth2\Server\Exception\OAuthServerException;
-use Illuminate\Support\Facades\Hash;
-use League\OAuth2\Server\Entities\ClientEntityInterface;
 
 class CustomPasswordGrant extends AbstractGrant
 {
@@ -36,20 +41,21 @@ class CustomPasswordGrant extends AbstractGrant
         return $this->grantType;
     }
 
-    protected function getUserEntityByUserCredentials($username, $password): ?UserEntity
+    protected function getUserEntityByUserCredentials($username, $password): Account|null
     {
         $user = Account::where('nickname', $username)->first();
 
         if (!$user || !Hash::check($password, $user->password)) {
             return null;
         }
-        return new UserEntity($user->getAuthIdentifier());
+        return $user;
     }
 
 
     /**
      * @throws UniqueTokenIdentifierConstraintViolationException
      * @throws \DateMalformedStringException
+     * @throws \Exception
      */
     protected function issueAccessToken(
         \DateInterval $accessTokenTTL,
@@ -60,9 +66,26 @@ class CustomPasswordGrant extends AbstractGrant
     {
         $initToken = new CustomAccessTokenRepository();
         $accessToken = $initToken->getNewToken($client, $scopes, $userIdentifier);
+        $accessToken->convertToJWT();
         $initToken->persistNewAccessToken($accessToken);
 
         return $accessToken;
+    }
+
+    /**
+     * @throws \DateMalformedStringException
+     * @throws UniqueTokenIdentifierConstraintViolationException
+     * @throws \Exception
+     */
+    protected function issueRefreshToken(CustomAccessToken|\League\OAuth2\Server\Entities\AccessTokenEntityInterface $accessToken): CustomRefreshToken
+    {
+        $initToken = new CustomRefreshTokenRepository();
+        $refreshToken = $initToken->getNewRefreshToken();
+        $refreshToken->setAccessToken($accessToken);
+        $refreshToken->convertToJWT();
+        $initToken->persistNewRefreshToken($refreshToken);
+
+        return $refreshToken;
     }
 
     /**
@@ -71,10 +94,10 @@ class CustomPasswordGrant extends AbstractGrant
      * @throws \DateMalformedStringException
      */
     public function respondToAccessTokenRequest(
-        ServerRequestInterface $request,
-        ResponseTypeInterface $responseType,
-        \DateInterval $accessTokenTTL
-    ): ResponseTypeInterface
+        ServerRequestInterface                   $request,
+        CustomResponseType|ResponseTypeInterface $responseType,
+        \DateInterval                            $accessTokenTTL
+    ): CustomResponseType
     {
         $client = $this->clientRepository->getClientEntity(5);
 
@@ -97,16 +120,17 @@ class CustomPasswordGrant extends AbstractGrant
         $accessToken = $this->issueAccessToken(
             $accessTokenTTL,
             $client,
-            $user->getIdentifier(),
+            (new UserEntity($user->getAuthIdentifier()))->getIdentifier(),
             []
         );
 
         $refreshToken = $this->issueRefreshToken($accessToken);
 
-        $responseType->setAccessToken($accessToken);
-        $responseType->setRefreshToken($refreshToken);
+        $customResponseType = new CustomResponseType();
+        $customResponseType->setAccessToken($accessToken);
+        $customResponseType->setRefreshToken($refreshToken);
 
-        return $responseType;
+        return $customResponseType;
     }
 }
 

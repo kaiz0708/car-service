@@ -2,14 +2,12 @@
 
 namespace App\Providers;
 
-use App\Grants\CustomAccessTokenRepository;
+use App\Grants\CustomPasswordGrant;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use League\OAuth2\Server\AuthorizationServer;
 use Laravel\Passport\Bridge\RefreshTokenRepository;
 use Laravel\Passport\Bridge\UserRepository;
-use App\Grants\CustomPasswordGrant;
-use Laravel\Passport\Passport;
+use League\OAuth2\Server\AuthorizationServer;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -28,7 +26,7 @@ class AuthServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            \App\Grants\CustomAccessTokenRepository::class
+            \App\CustomAuthToken\CustomAccessTokenRepository::class
         );
     }
 
