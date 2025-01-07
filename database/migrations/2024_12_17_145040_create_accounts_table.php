@@ -26,8 +26,8 @@ return new class extends Migration
             $table->integer('attempt_forget_pwd')->nullable();
             $table->integer('attempt_login')->nullable();
             $table->boolean('is_super_admin')->nullable();
-            $table->foreignId('role_id')->nullable()->constrained('roles')->onDelete('set null'); // Liên kết với bảng roles
-            $table->integer('status')->notNull();
+            $table->foreignId('role_id')->nullable()->constrained('roles')->onDelete('set null');
+            $table->integer('status')->nullable(false);
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrentOnUpdate();
         });

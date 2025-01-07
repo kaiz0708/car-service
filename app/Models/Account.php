@@ -26,6 +26,7 @@ class Account extends Authenticatable
     }
 
     protected $fillable = [
+        'id',
         'nickname',
         'email',
         'password',

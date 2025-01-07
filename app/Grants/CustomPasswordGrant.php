@@ -5,6 +5,7 @@ namespace App\Grants;
 use App\CustomAuthToken\CustomResponseType;
 use App\Models\Account;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Laravel\Passport\Bridge\RefreshTokenRepository;
 use Laravel\Passport\Bridge\User as UserEntity;
 use Laravel\Passport\Bridge\UserRepository;
@@ -62,19 +63,21 @@ class CustomPasswordGrant extends CustomGrant
             $password,
         );
 
+        $roleId = $user->roles()->get('id');
+        Log::info('id : ' . $roleId);
+
         $accessToken = $this->issueAccessToken(
             $accessTokenTTL,
             $client,
             (new UserEntity($user->getAuthIdentifier()))->getIdentifier(),
-            ['product:list', 'product:create']
+            ['product.list', 'product.create']
         );
 
         $refreshToken = $this->issueRefreshToken($accessToken);
 
-        $customResponseType = new CustomResponseType();
-        $customResponseType->setAccessToken($accessToken);
-        $customResponseType->setRefreshToken($refreshToken);
-        return $customResponseType;
+        $responseType->setAccessToken($accessToken);
+        $responseType->setRefreshToken($refreshToken);
+        return $responseType;
     }
 }
 

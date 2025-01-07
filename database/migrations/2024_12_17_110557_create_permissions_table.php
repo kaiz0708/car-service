@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('name_group', 255)->nullable();
             $table->string('description', 255)->nullable();
             $table->boolean('show_menu')->nullable();
-            $table->integer('status')->notNull();
+            $table->integer('status')->nullable(false);
             $table->timestamps();
         });
     }

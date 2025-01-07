@@ -2,21 +2,23 @@
 
 namespace App\Http\Middleware;
 
+use App\Attributes\PreAuthorize;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\UnencryptedToken;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
+use ReflectionMethod;
 use Symfony\Component\HttpFoundation\Response;
 use Lcobucci\JWT\Configuration;
 
-class CustomCheckScope
+class PreAuthorizeMiddleware
 {
 
     protected Configuration $config;
-    private string $requiredPermission;
 
-    public function __construct($requiredPermission = null)
+    public function __construct()
     {
         $publicKey = InMemory::file(storage_path('oauth-public.key'));
         $privateKey = InMemory::file(storage_path('oauth-private.key'));
@@ -26,12 +28,14 @@ class CustomCheckScope
             $privateKey,
             $publicKey
         );
-        $this->requiredPermission = $requiredPermission;
+
     }
+
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(Request): (Response)  $next
+     * @param \Closure(Request): (Response) $next
+     * @throws \ReflectionException
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -40,6 +44,18 @@ class CustomCheckScope
         if (!$token) {
             return response()->json(['error' => 'Token missing'], 401);
         }
+
+        $controller = $request->route()->getController();
+        $method = $request->route()->getActionMethod();
+
+
+        $reflection = new ReflectionMethod($controller, $method);
+        $attributes = $reflection->getAttributes(PreAuthorize::class);
+
+        $instance = $attributes[0]->newInstance();
+
+        Log::info('permission : '. json_encode($instance->permission));
+
 
         try {
             $jwt = $this->config->parser()->parse($token);
@@ -55,13 +71,11 @@ class CustomCheckScope
             }
 
             $claims = $jwt->claims();
-            $tokenScopes = $claims->get('scope', []);  // Get scopes from JWT token
-
-
-            if (!in_array($this->requiredPermission, $tokenScopes)) {
+            $tokenScopes = $claims->get('scope', []);
+            if (!in_array($instance->permission, $tokenScopes)) {
                 return response()->json([
                     'error' => 'Insufficient scope',
-                    'required' => $this->requiredPermission,
+                    'required' => $instance->permission,
                     'available' => $tokenScopes
                 ], 403);
             }

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('kind')->nullable();
             $table->string('description', 1000)->nullable();
             $table->boolean('is_system_role')->nullable();
-            $table->integer('status')->notNull();
+            $table->integer('status')->nullable(false);
             $table->timestamps();
         });
     }

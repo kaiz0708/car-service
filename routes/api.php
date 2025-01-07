@@ -6,22 +6,18 @@ use App\Http\Controllers\ProductController;
 use Laravel\Passport\Http\Controllers\AccessTokenController;
 use Psr\Http\Message\ServerRequestInterface;
 use App\Http\Middleware\CustomAuthenticate;
-use App\Http\Middleware\CustomCheckScope;
-
-
-
+use App\Http\Middleware\PreAuthorizeMiddleware;
 
 Route::prefix('products')->group(function () {
-    global $customAuth, $customCheckScope;
     Route::get('/', [ProductController::class, 'index'])
-        ->middleware([new CustomAuthenticate(), new CustomCheckScope('product:list')]);
+        ->middleware(['auth.api', 'scope']);
 });
 
 Route::post('/test', function (Request $request) {
     return response()->json([
         'message' => 'Received data successfully'
     ]);
-})->middleware(['auth:api', 'scope:product:list']);
+});
 
 
 Route::post('/oauth/token', function (ServerRequestInterface $serverRequest) {
