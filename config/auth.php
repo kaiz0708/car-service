@@ -65,10 +65,10 @@ return [
     */
 
     'providers' => [
-        
+
         'users' => [
-        'driver' => 'eloquent',
-        'model' => App\Models\Account::class, 
+            'driver' => 'eloquent',
+            'model' => App\Models\Account::class,
         ],
         // 'users' => [
         //     'driver' => 'database',

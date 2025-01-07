@@ -9,10 +9,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        // Lấy tất cả sản phẩm từ database
         $products = Product::all();
-
-        echo $products;
 
         // Trả về JSON response
         return response()->json([

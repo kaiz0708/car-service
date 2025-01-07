@@ -4,7 +4,6 @@ namespace App\CustomAuthToken;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
 use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
-use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
 use Ramsey\Uuid\Uuid;
 

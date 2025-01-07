@@ -20,13 +20,20 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->app->make(AuthorizationServer::class)->enableGrantType(
-            $this->makeCustomGrant(),
-            new \DateInterval('PT1H') // Access token TTL
-        );
+        $grants = $this->makeCustomGrant();
+        $authorizationServer = $this->app->make(AuthorizationServer::class);
+        foreach ($grants as $type => $grant) {
+            $authorizationServer->enableGrantType(
+                $grant,
+                new \DateInterval('PT1H')
+            );
+        }
 
         $this->app->bind(
             \App\CustomAuthToken\CustomAccessTokenRepository::class
+        );
+        $this->app->bind(
+            \App\CustomAuthToken\CustomRefreshTokenRepository::class
         );
     }
 
@@ -34,12 +41,14 @@ class AuthServiceProvider extends ServiceProvider
     /**
      * @throws BindingResolutionException
      */
-    protected function makeCustomGrant(): CustomPasswordGrant
+    protected function makeCustomGrant(): array
     {
-        return new CustomPasswordGrant(
-            $this->app->make(UserRepository::class),
-            $this->app->make(RefreshTokenRepository::class),
-            "password"
-        );
+        return [
+            'password' => new CustomPasswordGrant(
+                $this->app->make(UserRepository::class),
+                $this->app->make(RefreshTokenRepository::class),
+                "password"
+            ),
+        ];
     }
 }

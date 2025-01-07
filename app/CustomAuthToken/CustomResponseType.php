@@ -48,7 +48,7 @@ class CustomResponseType implements ResponseTypeInterface
             'expires_in' => 3600,
         ]);
 
-        $response->getBody()->write($body);  // Ghi nội dung vào response body
+        $response->getBody()->write($body);
         return $response->withHeader('Content-Type', 'application/json');
     }
 

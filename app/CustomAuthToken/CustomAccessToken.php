@@ -2,7 +2,6 @@
 namespace App\CustomAuthToken;
 
 use DateTimeImmutable;
-use Illuminate\Support\Facades\Log;
 use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
