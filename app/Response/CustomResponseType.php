@@ -1,7 +1,10 @@
 <?php
 
-namespace App\CustomAuthToken;
+namespace App\Response;
 
+use App\CustomAuthToken\CustomAccessToken;
+use App\CustomAuthToken\CustomRefreshToken;
+use App\DTO\ApiMessageDto;
 use League\OAuth2\Server\ResponseTypes\ResponseTypeInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -41,14 +44,20 @@ class CustomResponseType implements ResponseTypeInterface
      */
     public function generateHttpResponse(ResponseInterface $response): \Psr\Http\Message\MessageInterface|ResponseInterface
     {
-        $body = json_encode([
+        $responseApiResponse = new ApiMessageDto();
+
+        $body = [
             'access_token' => $this->getAccessToken(),
             'refresh_token' => $this->getRefreshToken(),
             'token_type' => 'bearer',
             'expires_in' => 3600,
-        ]);
+        ];
 
-        $response->getBody()->write($body);
+        $responseApiResponse->code = "200";
+        $responseApiResponse->message = "Success";
+        $responseApiResponse->data = $body;
+
+        $response->getBody()->write(json_encode($responseApiResponse));
         return $response->withHeader('Content-Type', 'application/json');
     }
 

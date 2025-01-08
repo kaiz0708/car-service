@@ -21,7 +21,7 @@ class CustomAccessTokenRepository implements AccessTokenRepositoryInterface
         $accessToken->setUserIdentifier($userIdentifier);
         $accessToken->setIdentifier($tokenId);
         $accessToken->setClaims([
-            "scope" => $scopes
+            "permissions" => $scopes
         ]);
         $accessToken->setExpiryDateTime((new DateTimeImmutable())->modify('+1 hour'));
 

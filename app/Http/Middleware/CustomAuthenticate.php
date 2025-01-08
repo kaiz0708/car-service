@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\CustomAuthenticationException;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -30,15 +31,14 @@ class CustomAuthenticate
 
     /**
      * Handle an incoming request.
-     * @throws AuthenticationException
+     * @throws CustomAuthenticationException
      */
     public function handle(Request $request, Closure $next): Response
     {
         $token = $request->bearerToken();
         if (!$token || !$this->validateToken($token)) {
-            throw new AuthenticationException('Unauthenticated.');
+            throw new CustomAuthenticationException('Unauthenticated.', 401);
         }
-
         return $next($request);
     }
 

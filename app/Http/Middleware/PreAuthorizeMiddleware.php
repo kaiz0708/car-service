@@ -54,9 +54,6 @@ class PreAuthorizeMiddleware
 
         $instance = $attributes[0]->newInstance();
 
-        Log::info('permission : '. json_encode($instance->permission));
-
-
         try {
             $jwt = $this->config->parser()->parse($token);
             assert($jwt instanceof UnencryptedToken);
@@ -71,7 +68,7 @@ class PreAuthorizeMiddleware
             }
 
             $claims = $jwt->claims();
-            $tokenScopes = $claims->get('scope', []);
+            $tokenScopes = $claims->get('permissions', []);
             if (!in_array($instance->permission, $tokenScopes)) {
                 return response()->json([
                     'error' => 'Insufficient scope',

@@ -2,7 +2,9 @@
 
 namespace App\Exceptions;
 
+use App\DTO\ApiMessageDto;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Spatie\FlareClient\Api;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -26,5 +28,18 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    public function render($request, Throwable $exception): \Illuminate\Http\JsonResponse|\Illuminate\Http\Response
+    {
+        $response = new ApiMessageDto();
+        $response->code = $exception->getCode();
+        $response->message = $exception->getMessage();
+
+        if ($exception instanceof CustomAuthenticationException) {
+            return response()->json($response, $exception->getCode());
+        }
+
+        return parent::render($request, $exception);
     }
 }

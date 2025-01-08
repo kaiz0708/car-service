@@ -19,6 +19,7 @@ class CustomRefreshTokenRepository implements RefreshTokenRepositoryInterface
         $tokenId = Uuid::uuid4()->toString();
         $refreshToken->setIdentifier($tokenId);
         $refreshToken->setExpiryDateTime((new DateTimeImmutable())->modify('+1 month'));
+
         return $refreshToken;
     }
 

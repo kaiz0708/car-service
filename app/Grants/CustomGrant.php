@@ -6,6 +6,7 @@ use App\CustomAuthToken\CustomAccessToken;
 use App\CustomAuthToken\CustomAccessTokenRepository;
 use App\CustomAuthToken\CustomRefreshToken;
 use App\CustomAuthToken\CustomRefreshTokenRepository;
+use App\Response\CustomResponseType;
 use DateInterval;
 use Laravel\Passport\Bridge\RefreshTokenRepository;
 use Laravel\Passport\Bridge\UserRepository;
@@ -75,7 +76,7 @@ class CustomGrant extends AbstractGrant
         return $this->grantType;
     }
 
-    public function respondToAccessTokenRequest(ServerRequestInterface $request, ResponseTypeInterface $responseType, DateInterval $accessTokenTTL)
+    public function respondToAccessTokenRequest(ServerRequestInterface $request, CustomResponseType|ResponseTypeInterface $responseType, DateInterval $accessTokenTTL)
     {
 
     }
