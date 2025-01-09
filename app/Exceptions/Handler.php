@@ -3,8 +3,8 @@
 namespace App\Exceptions;
 
 use App\DTO\ApiMessageDto;
+use App\Response\CustomResponseMessage;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Spatie\FlareClient\Api;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -30,16 +30,15 @@ class Handler extends ExceptionHandler
         });
     }
 
-    public function render($request, Throwable $exception): \Illuminate\Http\JsonResponse|\Illuminate\Http\Response
+    public function render($request, Throwable $exception):\Illuminate\Http\JsonResponse|\Illuminate\Http\Response|CustomResponseMessage
     {
         $response = new ApiMessageDto();
         $response->code = $exception->getCode();
         $response->message = $exception->getMessage();
 
         if ($exception instanceof CustomAuthenticationException) {
-            return response()->json($response, $exception->getCode());
+            return new CustomResponseMessage($response, $response->code);
         }
-
         return parent::render($request, $exception);
     }
 }

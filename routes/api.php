@@ -5,12 +5,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use Laravel\Passport\Http\Controllers\AccessTokenController;
 use Psr\Http\Message\ServerRequestInterface;
-use App\Http\Middleware\CustomAuthenticate;
-use App\Http\Middleware\PreAuthorizeMiddleware;
+
 
 Route::prefix('products')->group(function () {
     Route::get('/', [ProductController::class, 'index'])
-        ->middleware(['auth.api', 'scope']);
+        ->middleware(['auth.api', 'scope', 'context']);
 });
 
 Route::post('/test', function (Request $request) {

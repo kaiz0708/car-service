@@ -2,21 +2,18 @@
 
 namespace App\Exceptions;
 
-use App\DTO\ApiMessageDto;
 use Exception;
-use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\Response as ResponseAlias;
 
 class CustomAuthenticationException extends Exception
 {
     protected $message;
-    protected mixed $statusCode;
+    protected $code;
 
-    public function __construct($message = "Unauthenticated", $statusCode = ResponseAlias::HTTP_UNAUTHORIZED)
+    public function __construct($message, $statusCode)
     {
         $this->message = $message;
-        $this->statusCode = $statusCode;
-
-        parent::__construct($this->message);
+        $this->code = $statusCode;
+        parent::__construct($this->message, $this->code);
     }
 }

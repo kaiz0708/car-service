@@ -3,13 +3,19 @@
 namespace App\Http\Middleware;
 
 use App\Attributes\PreAuthorize;
+use App\Constants\Constants;
+use App\DTO\ApiMessageDto;
+use App\Exceptions\CustomAuthenticationException;
+use App\Response\CustomResponseMessage;
 use Closure;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\UnencryptedToken;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
 use ReflectionMethod;
+use Spatie\FlareClient\Api;
 use Symfony\Component\HttpFoundation\Response;
 use Lcobucci\JWT\Configuration;
 
@@ -36,13 +42,15 @@ class PreAuthorizeMiddleware
      *
      * @param \Closure(Request): (Response) $next
      * @throws \ReflectionException
+     * @throws CustomAuthenticationException
      */
     public function handle(Request $request, Closure $next): Response
     {
         $token = $request->bearerToken();
+        Log::info('token : ' . $token);
 
         if (!$token) {
-            return response()->json(['error' => 'Token missing'], 401);
+            throw new CustomAuthenticationException('Unauthenticated.', Constants::UNAUTHORIZED);
         }
 
         $controller = $request->route()->getController();
@@ -64,22 +72,16 @@ class PreAuthorizeMiddleware
             );
 
             if (!$isValid) {
-                return response()->json(['error' => 'Invalid token'], 401);
+                throw new CustomAuthenticationException('Unauthenticated.', Constants::UNAUTHORIZED);
             }
 
             $claims = $jwt->claims();
             $tokenScopes = $claims->get('permissions', []);
             if (!in_array($instance->permission, $tokenScopes)) {
-                return response()->json([
-                    'error' => 'Insufficient scope',
-                    'required' => $instance->permission,
-                    'available' => $tokenScopes
-                ], 403);
+                throw new CustomAuthenticationException('Forbidden.', 403);
             }
-
-
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Invalid token: ' . $e->getMessage()], 401);
+            throw new CustomAuthenticationException($e->getMessage(), $e->getCode());
         }
 
         return $next($request);

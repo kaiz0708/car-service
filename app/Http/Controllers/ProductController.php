@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Attributes\PreAuthorize;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -12,9 +13,13 @@ class ProductController extends Controller
     {
         $products = Product::all();
 
+        Log::info('token : ' . $this->getCurrentToken());
+
         return response()->json([
             'success' => true,
             'data' => $products
         ], 200);
     }
+
+
 }

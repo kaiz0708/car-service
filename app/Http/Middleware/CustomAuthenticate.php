@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Constants\Constants;
 use App\Exceptions\CustomAuthenticationException;
 use Closure;
 use Illuminate\Http\Request;
@@ -11,7 +12,6 @@ use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\UnencryptedToken;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Auth\AuthenticationException;
 
 class CustomAuthenticate
 {
@@ -36,8 +36,9 @@ class CustomAuthenticate
     public function handle(Request $request, Closure $next): Response
     {
         $token = $request->bearerToken();
+        Log::info('token : ' . $token);
         if (!$token || !$this->validateToken($token)) {
-            throw new CustomAuthenticationException('Unauthenticated.', 401);
+            throw new CustomAuthenticationException('Unauthenticated.', Constants::UNAUTHORIZED);
         }
         return $next($request);
     }
